@@ -32,7 +32,7 @@ $dsDetails=get-vm -name $vm | Get-Datastore | select -First 1
 New-HardDisk -vm $vm -CapacityGB -Datastore $dsDetails.name -ThinProvisioned 
 $outcome="success"
 $outcomeDescription+=""
-Invoke-VMScript -VM $vm -ScriptText $Script -HostCredential $servercreds
+Invoke-VMScript -VM $vm -ScriptText $Script -GuestCredential $servercreds
 }
 catch
 {
