@@ -1,5 +1,10 @@
 ﻿import-module VMware.VIMAutomation.core
-Set-PowerCLIConfiguration -InvalidCertificateAction Ignore 
+Set-PowerCLIConfiguration -InvalidCertificateAction Ignore  -confirm:$false
+#Inputs
+$viserver="" ;# provide vCemter server details
+$vm="" ; # Provide VMName
+$capacityGB=""; # Enter the Disk Capacity
+$driveletter="";#Enter Drive Letter
 
 #Get Vcenter Credentials
 $username=""; # User name to access vCenter
@@ -13,15 +18,12 @@ $servercreds=new-object System.Management.Automation.PSCredential -ArgumentList(
 
 #Format New disk
 $Script=@"
-Get-Disk  | Where-Object Isoffline -eq $true | set-disk -IsOffline $false 
-$disk=get-disk | where {$_.PartitionStyle -eq 'RAW'}
-Initialize-Disk -Number $disk.Number -PartitionStyle GPT | Out-Null
-$drive=New-Partition -DiskNumber $disk.Number -DriveLetter $driveletter -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel "New Volume" -Confirm:$false
+Get-Disk  | Where-Object Isoffline -eq `$true | set-disk -IsOffline `$false 
+`$disk=get-disk | where {`$_.PartitionStyle -eq 'RAW'}
+Initialize-Disk -Number `$disk.Number -PartitionStyle GPT | Out-Null
+`$drive=New-Partition -DiskNumber $disk.Number -DriveLetter $driveletter -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel "New Volume" -Confirm:`$false
 "@
 
-$viserver="" ;# provide vCemter server details
-$vm="" ; # Provide VMName
-$capacityGB=""; # Enter the Disk Capacity
 $outcome="Failed"
 $Error.Clear()
 $outcomeDescription="outcomeDescription"
@@ -29,7 +31,7 @@ $session=connect-viserver -Server $viserver -Credential $creds
 try
 {
 $dsDetails=get-vm -name $vm | Get-Datastore | select -First 1
-New-HardDisk -vm $vm -CapacityGB -Datastore $dsDetails.name -ThinProvisioned 
+New-HardDisk -vm $vm -CapacityGB $capacityGB -Datastore $dsDetails.name -ThinProvisioned 
 $outcome="success"
 $outcomeDescription+=""
 Invoke-VMScript -VM $vm -ScriptText $Script -GuestCredential $servercreds
